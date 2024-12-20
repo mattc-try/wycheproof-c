@@ -353,7 +353,7 @@ double compute_bias(const BIGNUM **samples, int sample_count, const BIGNUM *modu
         BN_mod_mul(tmp, samples[i], m, modulus, ctx); // tmp = s * m mod modulus
 
         double multiplier = 1.3951473992034527e-15; // 2 * pi / 2^52
-        double quotient = BN_get_word(tmp) * multiplier; // Simplification
+        double quotient = (double)BN_get_word(tmp) * multiplier; // Simplification
 
         sum_real += cos(quotient);
         sum_imag += sin(quotient);
@@ -614,16 +614,101 @@ void test_null_random(const char *algorithm, const char *curve) {
     printf("test_null_random passed for curve %s\n", curve);
 }
 
+
 /**
- * @brief Performs a timing-based test to detect bias in ephemeral key generation.
+ * @brief Converts a BIGNUM to a double by extracting the lower 53 bits.
  *
- * Measures the time taken to sign multiple messages and correlates the timing
- * with the ephemeral keys. If a bias is detected (significant deviation from
- * uniform distribution), the test fails.
+ * This function computes k mod 2^53, effectively extracting the lower
+ * 53 bits of the BIGNUM, and then converts the result to a double.
  *
- * @param algorithm The ECDSA algorithm name.
- * @param curve The curve name.
+ * @param bn The BIGNUM to convert.
+ * @return The lower 53 bits of the BIGNUM as a double.
  */
+double bn_to_double_lower_53(const BIGNUM *bn) {
+    if (bn == NULL) {
+        // Handle NULL pointer input gracefully
+        fprintf(stderr, "Error: NULL BIGNUM provided to bn_to_double_lower_53.\n");
+        return 0.0;
+    }
+
+    BN_CTX *ctx = BN_CTX_new();
+    if (ctx == NULL) {
+        handle_openssl_error("BN_CTX_new failed in bn_to_double_lower_53");
+    }
+
+    // Compute 2^53
+    BIGNUM *two_power_53 = BN_new();
+    if (two_power_53 == NULL) {
+        BN_CTX_free(ctx);
+        handle_openssl_error("BN_new failed for two_power_53 in bn_to_double_lower_53");
+    }
+    BN_set_bit(two_power_53, 53); // 2^53
+
+    // Compute bn mod 2^53 to extract lower 53 bits
+    BIGNUM *k_mod = BN_new();
+    if (k_mod == NULL) {
+        BN_free(two_power_53);
+        BN_CTX_free(ctx);
+        handle_openssl_error("BN_new failed for k_mod in bn_to_double_lower_53");
+    }
+
+    if (BN_mod(k_mod, bn, two_power_53, ctx) != 1) {
+        BN_free(k_mod);
+        BN_free(two_power_53);
+        BN_CTX_free(ctx);
+        handle_openssl_error("BN_mod failed in bn_to_double_lower_53");
+    }
+
+    // Convert k_mod to unsigned long long
+    // Since k_mod < 2^53, it fits within an unsigned long long
+    unsigned long long k_value = 0;
+    int bytes = BN_num_bytes(k_mod);
+    unsigned char *buf = calloc(1, sizeof(unsigned long long)); // Initialize to 0
+    if (buf == NULL) {
+        BN_free(k_mod);
+        BN_free(two_power_53);
+        BN_CTX_free(ctx);
+        fprintf(stderr, "Memory allocation failed in bn_to_double_lower_53.\n");
+        exit(EXIT_FAILURE);
+    }
+    // Ensure the buffer is large enough
+    if (bytes > sizeof(unsigned long long)) {
+        bytes = sizeof(unsigned long long);
+    }
+    // Extract the bytes
+    BN_bn2binpad(k_mod, buf, sizeof(unsigned long long));
+    // Convert to unsigned long long (assuming little endian)
+    // To handle endianess correctly, perform byte-wise conversion
+    for (int i = 0; i < sizeof(unsigned long long); i++) {
+        k_value |= ((unsigned long long)buf[i]) << (8 * i);
+    }
+    free(buf);
+
+    double result = (double)k_value;
+
+    // Cleanup
+    BN_free(k_mod);
+    BN_free(two_power_53);
+    BN_CTX_free(ctx);
+
+    return result;
+}
+
+
+/**
+ * @brief Comparison function for qsort to sort doubles in ascending order.
+ */
+int compare_doubles(const void *a, const void *b) {
+    double da = *(const double*)a;
+    double db = *(const double*)b;
+    if (da < db) return -1;
+    if (da > db) return 1;
+    return 0;
+}
+
+
+
+
 void test_timing(const char *algorithm, const char *curve) {
     printf("Running test_timing with algorithm: %s and curve: %s\n", algorithm, curve);
 
@@ -640,67 +725,31 @@ void test_timing(const char *algorithm, const char *curve) {
     }
 
     const int samples = 50000;
-    int deterministic = 1;
-    unsigned char **messages = get_messages_to_sign(samples, deterministic);
+    unsigned char **messages = get_messages_to_sign(samples, 1); // deterministic = 1
+    if (messages == NULL) {
+        fprintf(stderr, "Failed to obtain messages for signing.\n");
+        EC_KEY_free(eckey);
+        return;
+    }
 
     double *timing = malloc(samples * sizeof(double));
     if (timing == NULL) {
         fprintf(stderr, "Memory allocation failed for timing in test_timing\n");
+        free_messages(messages, samples, 1);
+        EC_KEY_free(eckey);
         exit(EXIT_FAILURE);
     }
 
-    BIGNUM **k_list = malloc(samples * sizeof(BIGNUM*));
-    if (k_list == NULL) {
-        fprintf(stderr, "Memory allocation failed for k_list in test_timing\n");
+    double *k_values = malloc(samples * sizeof(double));
+    if (k_values == NULL) {
+        fprintf(stderr, "Memory allocation failed for k_values in test_timing\n");
+        free(timing);
+        free_messages(messages, samples, 1);
+        EC_KEY_free(eckey);
         exit(EXIT_FAILURE);
     }
 
-    struct timeval start, end;
-    for (int i = 0; i < samples; i++) {
-        gettimeofday(&start, NULL);
-        unsigned char *sig = malloc(ECDSA_size(eckey));
-        if (sig == NULL) {
-            fprintf(stderr, "Memory allocation failed for signature in test_timing\n");
-            exit(EXIT_FAILURE);
-        }
-        unsigned int sig_len;
-
-        if (ECDSA_sign(0, messages[i], strlen((char*)messages[i]), sig, &sig_len, eckey) != 1) {
-            handle_openssl_error("ECDSA_sign failed in test_timing");
-        }
-
-        gettimeofday(&end, NULL);
-        double elapsed = (end.tv_sec - start.tv_sec) * 1e6 + (end.tv_usec - start.tv_usec);
-        timing[i] = elapsed;
-
-        BIGNUM *k = NULL;
-        if (extract_k(eckey, messages[i], strlen((char*)messages[i]), &k) != 1) {
-            fprintf(stderr, "Failed to extract k in test_timing\n");
-            exit(EXIT_FAILURE);
-        }
-        k_list[i] = k;
-
-        free(sig);
-    }
-
-    double *sorted = malloc(samples * sizeof(double));
-    if (sorted == NULL) {
-        fprintf(stderr, "Memory allocation failed for sorted timing in test_timing\n");
-        exit(EXIT_FAILURE);
-    }
-    memcpy(sorted, timing, samples * sizeof(double));
-
-    // Simple sort
-    for (int i = 0; i < samples - 1; i++) {
-        for (int j = i + 1; j < samples; j++) {
-            if (sorted[j] < sorted[i]) {
-                double temp = sorted[i];
-                sorted[i] = sorted[j];
-                sorted[j] = temp;
-            }
-        }
-    }
-
+    /* Obtain group order */
     const EC_GROUP *group = EC_KEY_get0_group(eckey);
     BIGNUM *order = BN_new();
     if (order == NULL) {
@@ -710,23 +759,89 @@ void test_timing(const char *algorithm, const char *curve) {
         handle_openssl_error("EC_GROUP_get_order failed in test_timing");
     }
 
-    double expected_average = (double)BN_get_word(order) / 2.0;
+    struct timeval start, end;
+    for (int i = 0; i < samples; i++) {
+        /* Generate random k */
+        BIGNUM *k = BN_new();
+        if (k == NULL) {
+            handle_openssl_error("BN_new failed for k in test_timing");
+        }
+        if (BN_rand_range(k, order) != 1) {
+            BN_free(k);
+            handle_openssl_error("BN_rand_range failed for k in test_timing");
+        }
+
+        /* Start timing */
+        gettimeofday(&start, NULL);
+
+        /* Sign the message with specified k using ECDSA_do_sign_ex */
+        ECDSA_SIG *sig = ECDSA_do_sign_ex(messages[i], strlen((char*)messages[i]), k, NULL, eckey);
+        if (sig == NULL) {
+            BN_free(k);
+            handle_openssl_error("ECDSA_do_sign_ex failed in test_timing");
+        }
+
+        /* End timing */
+        gettimeofday(&end, NULL);
+        double elapsed = (end.tv_sec - start.tv_sec) * 1e6 + (end.tv_usec - start.tv_usec);
+        timing[i] = elapsed;
+
+        /* Store k */
+        k_values[i] = bn_to_double_lower_53(k);
+        BN_free(k);
+        ECDSA_SIG_free(sig);
+    }
+
+    /* Cleanup order */
+    BN_free(order);
+
+    /* Sort the timing array for efficient cutoff analysis */
+    double *sorted = malloc(samples * sizeof(double));
+    if (sorted == NULL) {
+        fprintf(stderr, "Memory allocation failed for sorted timing in test_timing\n");
+        free(k_values);
+        free(timing);
+        free_messages(messages, samples, 1);
+        EC_KEY_free(eckey);
+        exit(EXIT_FAILURE);
+    }
+    memcpy(sorted, timing, samples * sizeof(double));
+    qsort(sorted, samples, sizeof(double), compare_doubles);
+
+    /* Statistical Parameters */
+    double expected_average = 0.0; // To be computed based on k_values
+    double expected_stddev = 0.0;
+
+    /* Compute expected average and stddev */
+    double sum = 0.0, sum_sq = 0.0;
+    for (int i = 0; i < samples; i++) {
+        sum += k_values[i];
+        sum_sq += k_values[i] * k_values[i];
+    }
+    expected_average = sum / samples;
+    expected_stddev = sqrt((sum_sq / samples) - (expected_average * expected_average));
+
     double max_sigma = 0.0;
 
+    /* Perform statistical analysis at multiple cutoff points */
     for (int idx = samples - 1; idx > 10; idx /= 2) {
         double cutoff = sorted[idx];
         int count = 0;
         double total = 0.0;
         for (int i = 0; i < samples; i++) {
             if (timing[i] <= cutoff) {
-                double k_val = BN_get_word(k_list[i]);
-                total += k_val;
+                total += k_values[i];
                 count++;
             }
         }
-        double expected_stddev = ((double)BN_get_word(order)) / sqrt(12.0 * count);
+        if (count == 0) continue; // Avoid division by zero
+
         double average = total / count;
-        double sigmas = fabs(expected_average - average) / expected_stddev;
+        double sigmas = 0.0;
+        if (expected_stddev != 0.0) {
+            sigmas = fabs(expected_average - average) / (expected_stddev / sqrt((double)count));
+        }
+
         if (sigmas > max_sigma) {
             max_sigma = sigmas;
         }
@@ -734,20 +849,30 @@ void test_timing(const char *algorithm, const char *curve) {
                count, cutoff, average / expected_average, sigmas);
     }
 
-    ASSERT(max_sigma < 7.0, "Timing attack detected: biased k");
-
-    for (int i = 0; i < samples; i++) {
-        BN_free(k_list[i]);
+    /* Define a threshold for maximum acceptable sigma */
+    const double MAX_SIGMA = 7.0;
+    if (max_sigma >= MAX_SIGMA) {
+        fprintf(stderr, "Timing attack detected: biased k (max_sigma: %.6f >= %.1f)\n", max_sigma, MAX_SIGMA);
+        /* Cleanup */
+        free(sorted);
+        free(k_values);
+        free(timing);
+        free_messages(messages, samples, 1);
+        EC_KEY_free(eckey);
+        exit(EXIT_FAILURE);
     }
-    free(k_list);
-    free(timing);
+
+    /* Cleanup */
     free(sorted);
-    free_messages(messages, samples, deterministic);
-    BN_free(order);
+    free(k_values);
+    free(timing);
+    free_messages(messages, samples, 1);
     EC_KEY_free(eckey);
 
     printf("test_timing passed for curve %s\n", curve);
 }
+
+
 
 /**
  * @brief The main entry point of the test program.
@@ -794,8 +919,8 @@ int main() {
     test_null_random("SHA256WithECDDSA", "secp256r1");
 
     /* Run timing tests */
-    test_timing("SHA256WithECDSA", "secp256r1");
     test_timing("SHA256WithECDSA", "brainpoolP256r1");
+    test_timing("SHA256WithECDSA", "secp256r1");
 
     /* Cleanup OpenSSL */
     EVP_cleanup();

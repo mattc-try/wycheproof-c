@@ -3,14 +3,14 @@
 #define TEST_VECTORS_XDH_JWK_H
 #include <stddef.h>
 
-#define MAX_FLAGS 10
+#define MAX_FLAGS 5
 
 typedef struct {
     int tc_id;
     const char* curve;
     const char* public_x;
     const char* private_d;
-    unsigned char shared[256];
+    unsigned char shared[56];
     size_t shared_len;
     const char* result;
     const char* comment;

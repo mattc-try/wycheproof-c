@@ -3,16 +3,16 @@
 #define TEST_VECTORS_XDH_ASN_H
 #include <stddef.h>
 
-#define MAX_FLAGS 10
+#define MAX_FLAGS 5
 
 typedef struct {
     int tc_id;
     const char* curve;
-    unsigned char public_key_asn[200];
+    unsigned char public_key_asn[128];
     size_t public_key_asn_len;
-    unsigned char private_key_asn[200];
+    unsigned char private_key_asn[128];
     size_t private_key_asn_len;
-    unsigned char shared[256];
+    unsigned char shared[56];
     size_t shared_len;
     const char* result;
     const char* comment;

@@ -3,14 +3,14 @@
 #define TEST_VECTORS_XDH_PEM_H
 #include <stddef.h>
 
-#define MAX_FLAGS 10
+#define MAX_FLAGS 5
 
 typedef struct {
     int tc_id;
     const char* curve;
     const char* public_key_pem;
     const char* private_key_pem;
-    unsigned char shared[1028];
+    unsigned char shared[56];
     size_t shared_len;
     const char* result;
     const char* comment;
