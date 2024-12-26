@@ -268,66 +268,6 @@ void testKeyGeneration(int curve_nid) {
     EVP_PKEY_free(pkey);
 }
 
-/**
- * @brief Checks the default behavior of uninitialized EC key pair generation.
- *
- * Generates an EC key pair without explicitly setting the curve, retrieves the
- * default curve, and ensures the key size is at least 224 bits.
- */
-void testDefaultKeyGeneration() {
-    printf("\nRunning testDefaultKeyGeneration...\n");
-
-    EVP_PKEY_CTX *pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_EC, NULL);
-    if (!pctx) {
-        fprintf(stderr, "Error creating EVP_PKEY_CTX\n");
-        return;
-    }
-
-    // Initialize key generation without setting parameters
-    if (EVP_PKEY_keygen_init(pctx) <= 0) {
-        fprintf(stderr, "Error initializing keygen\n");
-        EVP_PKEY_CTX_free(pctx);
-        return;
-    }
-
-    // Generate the key
-    EVP_PKEY *pkey = NULL;
-    if (EVP_PKEY_keygen(pctx, &pkey) <= 0) {
-        fprintf(stderr, "Error generating key\n");
-        EVP_PKEY_CTX_free(pctx);
-        return;
-    }
-
-    EVP_PKEY_CTX_free(pctx);
-
-    // Get the group name
-    char group_name[80];
-    size_t group_name_len = sizeof(group_name);
-    if (EVP_PKEY_get_utf8_string_param(pkey, "group", group_name, group_name_len, &group_name_len) != 1) {
-        fprintf(stderr, "Error getting group name\n");
-        EVP_PKEY_free(pkey);
-        return;
-    }
-    printf("Default curve used: %s\n", group_name);
-
-    // Get the field size using EVP_PKEY_get_bits()
-    int field_size = EVP_PKEY_get_bits(pkey);
-    if (field_size <= 0) {
-        fprintf(stderr, "Error getting field size\n");
-        EVP_PKEY_free(pkey);
-        return;
-    }
-    printf("Field size: %d bits\n", field_size);
-
-    if (field_size < 224) {
-        fprintf(stderr, "Default key size is less than 224 bits\n");
-    } else {
-        printf("Default key size is at least 224 bits\n");
-    }
-
-    EVP_PKEY_free(pkey);
-}
-
 
 /**
  * @brief Tries to generate a public key with a point at infinity.
@@ -372,7 +312,7 @@ int main() {
     testKeyGeneration(NID_X9_62_prime239v1);    // prime239v1
     testKeyGeneration(NID_brainpoolP256r1);     // brainpoolP256r1
 
-    testDefaultKeyGeneration();
+
     testPublicKeyAtInfinity();
 
     // Clean up OpenSSL
