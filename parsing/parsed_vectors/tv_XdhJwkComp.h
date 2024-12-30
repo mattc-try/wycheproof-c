@@ -1074,4 +1074,5 @@ static const XdhJwkTestCase xdh_jwk_test_cases[] = {
     { 522, "curve448", "4VZyIYPoR-EyxUVFM4PHW3odO9CwnC36TcUD7OnfRV2sgndCqH1wivioh20d9vOz7SVo0JSwr7I", "8JL0y7ug_VMHRZLYc3WmMZxVTwdNdRsOIXcTqphURc0ylVU4tGtG78oTCcUXcsgXGjoIzfuKUps", {  }, 0, "invalid", "missing field crv", { "InvalidPublic" }, 1 },
     { 523, "curve448", "", "8JL0y7ug_VMHRZLYc3WmMZxVTwdNdRsOIXcTqphURc0ylVU4tGtG78oTCcUXcsgXGjoIzfuKUps", {  }, 0, "invalid", "missing field x", { "InvalidPublic" }, 1 },
 };
-#endif // TEST_VECTORS_XDH_H
+
+#endif

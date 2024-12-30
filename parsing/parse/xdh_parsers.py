@@ -1,56 +1,5 @@
-import os
-import json
 import binascii
 from .base_parser import BaseParser
-
-
-# Base XDH Parser class
-class BaseXDHParser:
-    def __init__(self, directory_path, output_c_header, target_files):
-        self.directory_path = directory_path
-        self.output_c_header = output_c_header
-        self.target_files = target_files
-
-    def escape_string(self, s):
-        """Escapes special characters in strings for C headers."""
-        return s.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
-
-    def read_json(self, file_path):
-        """Reads and parses a JSON file."""
-        with open(file_path, 'r') as file:
-            return json.load(file)
-
-    def write_header(self, header_content):
-        """Writes the generated header content to a file."""
-        with open(self.output_c_header, 'w') as file:
-            file.write(header_content)
-
-    def parse_test_group(self, group):
-        """To be implemented by subclasses for specific XDH types."""
-        raise NotImplementedError
-
-    def parse(self):
-        """Iterates through all target files and parses test groups."""
-        header_content = self.generate_header_content_start()
-        for file in self.target_files:
-            file_path = os.path.join(self.directory_path, file)
-            try:
-                data = self.read_json(file_path)
-                test_groups = data.get('testGroups', [])
-                for group in test_groups:
-                    header_content += self.parse_test_group(group)
-            except Exception as e:
-                print(f"Failed to process file {file_path}: {e}")
-        header_content += self.generate_header_content_end()
-        self.write_header(header_content)
-
-    def generate_header_content_start(self):
-        """Generates the beginning of the header file. To be implemented by subclasses."""
-        raise NotImplementedError
-
-    def generate_header_content_end(self):
-        """Generates the end of the header file."""
-        return "};\n#endif // TEST_VECTORS_XDH_H\n"
 
 # Standard XDH Parser
 class XdhParser(BaseParser):
@@ -98,7 +47,7 @@ class XdhParser(BaseParser):
         return content
 
 # PEM Parser
-class XdhPemParser(BaseXDHParser):
+class XdhPemParser(BaseParser):
     def generate_header_content_start(self):
         return (
             "/* Auto-generated header file from XDH PEM test vectors */\n"
@@ -139,7 +88,7 @@ class XdhPemParser(BaseXDHParser):
         return content
 
 # JWK Parser
-class XdhJwkParser(BaseXDHParser):
+class XdhJwkParser(BaseParser):
     def generate_header_content_start(self):
         return (
             "/* Auto-generated header file from XDH JWK test vectors */\n"
@@ -182,7 +131,7 @@ class XdhJwkParser(BaseXDHParser):
         return content
 
 # ASN Parser
-class XdhAsnParser(BaseXDHParser):
+class XdhAsnParser(BaseParser):
     def generate_header_content_start(self):
         return (
             "/* Auto-generated header file from XDH ASN test vectors */\n"

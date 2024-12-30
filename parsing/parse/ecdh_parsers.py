@@ -1,53 +1,8 @@
-import os
-import json
-
-
-class BaseECDHParser:
-    def __init__(self, directory_path, output_c_header, target_files):
-        self.directory_path = directory_path
-        self.output_c_header = output_c_header
-        self.target_files = target_files
-
-    def read_json(self, file_path):
-        """Reads and parses a JSON file."""
-        with open(file_path, 'r') as file:
-            return json.load(file)
-
-    def write_header(self, header_content):
-        """Writes the generated header content to a file."""
-        with open(self.output_c_header, 'w') as file:
-            file.write(header_content)
-
-    def parse_test_group(self, group):
-        """To be implemented by subclasses for specific ECDH test types."""
-        raise NotImplementedError
-
-    def parse(self):
-        """Iterates through all target files and parses test groups."""
-        header_content = self.generate_header_content_start()
-        for file in self.target_files:
-            file_path = os.path.join(self.directory_path, file)
-            try:
-                data = self.read_json(file_path)
-                test_groups = data.get('testGroups', [])
-                for group in test_groups:
-                    header_content += self.parse_test_group(group)
-            except Exception as e:
-                print(f"Failed to process file {file_path}: {e}")
-        header_content += self.generate_header_content_end()
-        self.write_header(header_content)
-
-    def generate_header_content_start(self):
-        """Generates the beginning of the header file."""
-        raise NotImplementedError
-
-    def generate_header_content_end(self):
-        """Generates the end of the header file."""
-        return "};\n\n#endif\n"
-
+import binascii
+from .base_parser import BaseParser
 
 # Standard ECDH Parser
-class EcdhParser(BaseECDHParser):
+class EcdhParser(BaseParser):
     def generate_header_content_start(self):
         return (
             "/* Auto-generated header file from ECDH test vectors */\n"
@@ -85,7 +40,7 @@ class EcdhParser(BaseECDHParser):
 
 
 # ECPoint ECDH Parser
-class EcdhEcPointParser(BaseECDHParser):
+class EcdhEcPointParser(BaseParser):
     def generate_header_content_start(self):
         return (
             "/* Auto-generated header file from ECPoint ECDH test vectors */\n"
@@ -123,7 +78,7 @@ class EcdhEcPointParser(BaseECDHParser):
 
 
 # WebCrypto ECDH Parser
-class EcdhWebCryptoParser(BaseECDHParser):
+class EcdhWebCryptoParser(BaseParser):
     def generate_header_content_start(self):
         return (
             "/* Auto-generated header file from WebCrypto ECDH test vectors */\n"
