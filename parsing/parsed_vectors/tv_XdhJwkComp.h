@@ -10,7 +10,7 @@ typedef struct {
     const char* curve;
     const char* public_x;
     const char* private_d;
-    unsigned char shared[56];
+    unsigned char shared[256];
     size_t shared_len;
     const char* result;
     const char* comment;

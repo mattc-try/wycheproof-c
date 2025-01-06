@@ -23,7 +23,7 @@ def get_target_files(directory_path, prefix, suffix, exclusion=None):
     files = [f for f in os.listdir(directory_path) if f.startswith(prefix) and f.endswith(suffix)]
 
     if exclusion:
-        files = [f for f in files if any(excl not in f for excl in exclusion)]
+        files = [f for f in files if not any(excl in f for excl in exclusion)]
         # print("Step 3 - Files after exclusion:", files)
     return files
 

@@ -8,11 +8,11 @@
 typedef struct {
     int tc_id;
     const char* curve;
-    unsigned char public_key_asn[128];
+    unsigned char public_key_asn[200];
     size_t public_key_asn_len;
-    unsigned char private_key_asn[128];
+    unsigned char private_key_asn[200];
     size_t private_key_asn_len;
-    unsigned char shared[56];
+    unsigned char shared[256];
     size_t shared_len;
     const char* result;
     const char* comment;
