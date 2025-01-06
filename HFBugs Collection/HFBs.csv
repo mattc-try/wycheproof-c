@@ -1,0 +1,51 @@
+ID,BigType,Language,Snippet,DocuPrecise,SubType,Impact,DangerLvl,ExploVector,FixDifficulty,TriggerIncl
+CVE-2017-3736,Carry,Assembly,1.0,1,Montgomery Sq,Side-Channel,6.5,Remote,Medium,High
+CVE-2014-3570,Carry,Assembly,1.0,1,BIGNUM squaring,Undermine operations,5.0,Theoretical,Medium,Low
+CVE-2017-3732,Carry,Assembly,1.0,1,Montgomery Sq,DH private key,5.9,Remote,Medium,Low
+openssl#6687,Implementations,Assembly,1.0,1,Ed25519 key handling,Signing and certificates,5.5,Remote,High,Medium
+openssl#4b8736a#2,Carry,Assembly,1.0,1,Poly1305 architechture,MAC integrity,5.0,Remote,Medium,High
+CVE-2021-4160,Carry,Assembly,1.0,1,EC sq,innacurate results,5.9,Theoretical,Medium,Low
+CVE-2016-1000340,Carry,Java,1.0,1,EC sq,incorrect calculations,7.5,Remote,Medium,Low
+CVE-2015-8805,Carry,C,1.0,1,EC P-256 calculations,integrity of ecc sec cos calc,9.8,Remote,Medium ,Low
+tweetnacl-m[15],Implementations,C,1.0,1,GF arithmetic,incorrect crypto results,5.0,Remote,Low,Low
+openssl#6825d74b,Carry,Assembly,1.0,1,Incorrect MAC,potential forgering or integrity,6.5,Remote,Medium,High
+openssl#a970db05,Implementations,Assembly,1.0,1,Poly1305 architechture,MAC integrity,5.0,Remote,Medium,Low
+donna#8edc799f,Parameters,C,1.0,1,Non Canonical Mersenne,Leak of fraction of sec priv key,5.9,Remote,Medium,Medium
+openssl#c2633b8f,Implementations,Assembly,1.0,1,EC Modular Addition err,ec operation vuln key exch/sign,6.5,Remote ,Medium ,High
+CVE-2015-3193,Carry,Assembly,1.0,1,DH DHE ciphersuite,exposure of priv key,7.5,Remote ,Medium ,High
+CVE-2015-8804,Carry,Assembly,1.0,1,P-384 NIST ECC,Incorrect output in calc,9.8,Remote,High,High
+CVE-2016-7055,Carry,Assembly,1.0,1,Montgomery Mul,Errors in pk operations,5.9,Theoretical,Medium,Low
+CVE-2015-8618,Carry,Go,1.0,0,Montgomery Mul,RSA keys pk operations,7.5,Theoretical,Low,High
+openssl#0c687d7e,Timing,Assembly,1.0,1,Poly1305 loss bit,"wrong MAC, Poly1305",4.0,Remote,Medium,Low
+pycrypto#985164,Parameters,Python,1.0,1,ElGamal generator verif,Weakened encrytion bad gen,4.0,Remote,Low,High
+openssl#15587,Carry,Assembly,1.0,1,BIGNUM modular mult,Keys incorrect calc,7.0,Local,High,High
+bouncycastle#620110a#1,Implementations,Java,1.0,1,Bitwise operation err,incorrect crypto operations,6.0,Remote,Medium,High
+bouncycastle#781c3aa#2,Carry,Java,1.0,1,ECC mult bug Poly1305,Deviations in crypto,5.0,Local,High,Low
+bouncycastle#566,MIV,Java,1.0,1,ECC modular inversion,wrong ECC operations,7.0,Remote,Low,High
+CVE-2016-2182,MIV,C,1.0,1,BIGNUM decimal conv,Memory corruption RCE,9.8,Remote/theory,Low,Low
+CVE-2015-3194,MIV,C,0.5,1,RSA PSS signature,Denial of Service DoS,7.5,Remote,Low,Low
+CVE-2016-2178,MIV,C,1.0,1,DSA sign generation,remote code exec buffer overflow,9.0,Remote,Medium,Low
+CVE-2018-0737,Timing,C,1.0,1,RSA key generation,priv key cache timing attack,8.5,Remote,High,High
+openssl#3de81a5#1,State,C,1.0,1,Flag Handling RSA ,RSA primes timing attacks,7.5,Remote,Medium ,High
+CVE-2016-1000341,Timing,Java,1.0,1,DSA sign generation,priv key timing attack,5.9,Remote,Medium,Low
+CVE-2016-0701,State,C,0.0,1,DH key reuse,priv key brute force attacks,3.7,Remote,Easy,High
+CVE-2019-1547,Timing,C,1.0,1,ECDSA,priv key recov / sign forgery,4.7,Remote,Medium,High 
+CVE-2017-3735,MIV,C,0.0,1,Certificate off by one err,incorrect interpret of certif,5.3,Theoretical,Low,Low
+CVE-2016-1000346,MIV,Java,1.0,1,DH key validation,DH key exchange security,3.7,Remote,Medium,Low
+go#210ac4d#1,MIV,Go,1.0,1,GCM size limit,buffer overflow,5.0,Local ,Low,Low
+kyberslash2,TIming,Go,0.0,1,Kyber timing,crypto keys,8.5,Local ,Hihg,High
+openssl#7693,Implementations,C,1.0,1,Ed25519 sign maleability,Signature integrity,7.0,Remote,Medium,High
+pqc#1,Timing,Mult,0.0,1,Constant time EdDSA,recovery of priv keys,8.5,Remote ,High,Low
+chromium#1,MIV,Mult,0.0,1,Insuf entropy ecdsa,recovery of priv keys,7.5,Remote,Medium,High
+CVE-2024-30172,MIV,Java,0.0,0,Ed25519 infinite loop,crash and buffer overflow,5.5,Remote,Low,Low
+CVE-2021-20305,MIV,C,0.0,1,Scalar range ECC sign ,invalid signatures accepted,8.1,Remote,Medium,High
+CVE-2018-12438,Timing,C,0.0,1,Memory cache ecdsa timing,priv key recovery timing attack,4.9,Remote,Medium,Low
+CVE-2011-1945,Implementations,C,0.0,1,ECDSA binary curves mult,priv key recovery timing attack,2.6,Local,Medium,Low
+end-to-end#340,State,javascript,1.0,1,Curve25519 wrong func,No known vulnerabilites,1.5,Remote,Low,Low
+CVE-2024-36405,Timing,C,0.0,1,Kyber KEM timing,end to end timing measurements priv key,8.5,Remote,High,High
+CVE-2024-37305,MIV,C,1.0,1,Handling length decode,buffer overflow leakage/crash,8.2,Remote,Medium,High
+nacl#1,Carry,C,0.5,1,Carry prop ed25519 field,incorrect crypto and signatures,7.0,Local,Medium,Low
+go#13515,Carry,Go,1.0,1,Carry montgomery,DH RSA bad results,6.5,Local ,Medium,Medium
+CVE-2021-40530,Parameters,C++,1.0,1,param handling ElGamal,cross-configuration attack against OpenPGP.,5.9,Remote,Medium,High
+CVE-2019-14318,Timing,C++,1.0,1,ECDSA scalar multiplication,priv key timing attack,5.9,Remote,Medium,High
+CVE-2021-29415,Timing,Hardware,1.0,1,ECDSA in ARM hw accelerator,priv key timing attack,5.5,Local,High,High
