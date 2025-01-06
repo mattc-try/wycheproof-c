@@ -21,3 +21,12 @@
 - **Code Snippet:**
   However, the issue revolves around the cryptographic parameters (`p`, `g`, `x`, and `y`) involved in the ElGamal encryption process. These parameters are crucial in determining the security of the encrypted message, and any inconsistency in their handling across different libraries can lead to significant vulnerabilities.
   [here](https://ibm.github.io/system-security-research-updates/2021/07/20/insecurity-elgamal-pt1).
+
+
+## donna#8edc799f: F25519 Internal to Wire
+
+- **Specification:**The issue involves the handling of F25519 field elements in the Donna library, particularly during the conversion between internal representation and wire format. In the 32-bit pseudo-Mersenne implementation, certain non-canonical representations may occur during this conversion process. The 32-bit code was initially designed to illustrate the tricks used in the original Curve25519 paper rather than being a rigorous implementation. However, it gained significant popularity despite its illustrative nature.
+- **Defect:**The defect arises from the incorrect handling of non-canonical values, specifically outputs between \(2^{255} - 19\) and \(2^{255} - 1\), which were not correctly reduced in the `fcontract` function. This mishandling could lead to inconsistencies and potential errors in cryptographic operations, leaking a small fraction of a bit of security from private keys. Additionally, the original code, while popular, did not fully meet real-world needs, leading to further refinements in this commit.
+- **Impact:**The non-canonical representation can result in improper interpretation of field elements, compromising cryptographic operations that rely on precise value representations, such as key generation or signature verification. The failure to correctly reduce certain values may weaken the security of private keys, potentially leaking a small fraction of a bit of security. This could introduce vulnerabilities in systems relying on the Donna library for cryptographic operations.
+- **Code Snippet:**
+  [GitHub Link to Commit](https://github.com/agl/curve25519-donna/commit/2647eeba59fb628914c79ce691df794a8edc799f)
