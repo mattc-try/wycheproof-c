@@ -26,7 +26,7 @@ The bugs are classified into the following categories, each documented in its co
 │   └── Documents issues caused by inadequate input validation, leading to unexpected behavior or vulnerabilities.
 ├── PARAM_HANDLING.md
 │   └── Describes bugs related to improper parameter handling, including missing, incorrect, or misused parameters.
-└── TIMING_ATTACKS.md
+└── CONSTANT_TIME.md
     └── Analyzes vulnerabilities that expose the system to timing-based side-channel attacks.
 ```
 
