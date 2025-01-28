@@ -24,7 +24,37 @@ TESTS = {
             "name": "eckey_test",
             "source": "tests/unit/eckey_test.c",
             "output": "eckey_test_bin"
-        }
+        },
+        {
+            "name": "rsakey_test",
+            "source": "tests/unit/rsakey_test.c",
+            "output": "rsakey_test_bin"
+        },
+        {
+            "name": "dsa_test",
+            "source": "tests/unit/dsa_test.c",
+            "output": "dsa_test_bin"
+        },
+        {
+            "name": "rsaoaep_test",
+            "source": "tests/unit/rsaoaep_test.c",
+            "output": "rsaoaep_test_bin"
+        },
+        {
+            "name": "rsapss_test",
+            "source": "tests/unit/rsapss_test.c",
+            "output": "rsapss_test_bin"
+        },
+        {
+            "name": "rsasig_test",
+            "source": "tests/unit/rsasig_test.c",
+            "output": "rsasig_test_bin"
+        },
+        {
+            "name": "securerand_test",
+            "source": "tests/unit/securerand_test.c",
+            "output": "securerand_test_bin"
+        },
     ],
     "vect": [
         {
@@ -33,15 +63,30 @@ TESTS = {
             "output": "v_ecdh_test_bin"
         },
         {
-            "name": "v_signature",
-            "source": "tests/vect/v_signature.c",
-            "output": "v_signature_test_bin"
-        },
+            "name": "v_ecdsa",
+            "source": "tests/vect/v_ecdsa.c",
+            "output": "v_ecdsa_test_bin"
+        }, # some failing
         {
             "name": "v_xdh",
             "source": "tests/vect/v_xdh.c",
             "output": "v_xdh_test_bin"
-        }
+        },
+        # {
+        #     "name": "v_rsasig",
+        #     "source": "tests/vect/v_rsasig.c",
+        #     "output": "v_rsasig_test_bin"
+        # }, # most failing 
+        # {
+        #     "name": "v_rsaenc",
+        #     "source": "tests/vect/v_rsaenc.c",
+        #     "output": "v_rsaenc_test_bin"
+        # }, # most failing 
+        # {
+        #     "name": "v_dsa",
+        #     "source": "tests/vect/v_dsa.c",
+        #     "output": "v_dsa_test_bin"
+        # } # not compiling yet
     ]
 }
 
@@ -57,7 +102,8 @@ def compile_test(source_file, output_file):
         f"-I{OPENSSL_INCLUDE}",
         f"-L{OPENSSL_LIB}",
         "-lssl",
-        "-lcrypto"
+        "-lcrypto",
+        "-Wno-deprecated-declarations"
     ]
     print(f"Compiling: {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True)
