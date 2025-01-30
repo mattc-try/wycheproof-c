@@ -72,11 +72,11 @@ TESTS = {
             "source": "tests/vect/v_xdh.c",
             "output": "v_xdh_test_bin"
         },
-        # {
-        #     "name": "v_rsasig",
-        #     "source": "tests/vect/v_rsasig.c",
-        #     "output": "v_rsasig_test_bin"
-        # }, # most failing 
+        {
+            "name": "v_rsasig",
+            "source": "tests/vect/v_rsasig.c",
+            "output": "v_rsasig_test_bin"
+        }, # some RSASSA-PSS failing
         # {
         #     "name": "v_rsaenc",
         #     "source": "tests/vect/v_rsaenc.c",
