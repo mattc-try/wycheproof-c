@@ -29,24 +29,26 @@ class DsaParser(BaseParser):
         public_key_pem = group.get("publicKeyPem", "")
         sha = group.get("sha", "")
         key_size = group.get("publicKey", {}).get("keySize", 0)
-        content = ""
+        content = []
         for test in group.get("tests", []):
             tc_id = test.get("tcId", -1)
-            comment = test.get("comment", "")
+            comment = test.get("comment", "").replace('"', '\\"')
             msg_hex = test.get("msg", "")
             sig_hex = test.get("sig", "")
-            result = test.get("result", "")
-            flags = test.get("flags", [])
+            result = test.get("result", "").replace('"', '\\"')
+            flags = [flag.replace('"', '\\"') for flag in test.get("flags", [])]
+
             msg_bytes = binascii.unhexlify(msg_hex) if msg_hex else b""
             sig_bytes = binascii.unhexlify(sig_hex) if sig_hex else b""
-            content += (
+
+            content.append(
                 f"    {{ {tc_id}, \"{comment}\", \"{result}\", "
                 f"{{ {', '.join(f'0x{b:02x}' for b in msg_bytes)} }}, {len(msg_bytes)}, "
                 f"{{ {', '.join(f'0x{b:02x}' for b in sig_bytes)} }}, {len(sig_bytes)}, "
-                f"\"{sha}\", \"{public_key_pem}\", {key_size}, "
-                f"{{ {', '.join(f'\"{flag}\"' for flag in flags)} }}, {len(flags)} }},\n"
+                f"\"{sha}\", \"{public_key_pem.replace('\n', '\\n').replace('\"', '\\\"')}\", {key_size}, "
+                f"{{ {', '.join(f'\"{flag}\"' for flag in flags)} }}, {len(flags)} }},"
             )
-        return content
+        return "\n".join(content) + "\n"
 
 
 # P1363 DSA Parser
@@ -77,21 +79,23 @@ class DsaP1363Parser(BaseParser):
         public_key_pem = group.get("publicKeyPem", "")
         sha = group.get("sha", "")
         key_size = group.get("publicKey", {}).get("keySize", 0)
-        content = ""
+        content = []
         for test in group.get("tests", []):
             tc_id = test.get("tcId", -1)
-            comment = test.get("comment", "")
+            comment = test.get("comment", "").replace('"', '\\"')
             msg_hex = test.get("msg", "")
             sig_hex = test.get("sig", "")
-            result = test.get("result", "")
-            flags = test.get("flags", [])
+            result = test.get("result", "").replace('"', '\\"')
+            flags = [flag.replace('"', '\\"') for flag in test.get("flags", [])]
+
             msg_bytes = binascii.unhexlify(msg_hex) if msg_hex else b""
             sig_bytes = binascii.unhexlify(sig_hex) if sig_hex else b""
-            content += (
+
+            content.append(
                 f"    {{ {tc_id}, \"{comment}\", \"{result}\", "
                 f"{{ {', '.join(f'0x{b:02x}' for b in msg_bytes)} }}, {len(msg_bytes)}, "
                 f"{{ {', '.join(f'0x{b:02x}' for b in sig_bytes)} }}, {len(sig_bytes)}, "
-                f"\"{sha}\", \"{public_key_pem}\", {key_size}, "
-                f"{{ {', '.join(f'\"{flag}\"' for flag in flags)} }}, {len(flags)} }},\n"
+                f"\"{sha}\", \"{public_key_pem.replace('\n', '\\n').replace('\"', '\\\"')}\", {key_size}, "
+                f"{{ {', '.join(f'\"{flag}\"' for flag in flags)} }}, {len(flags)} }},"
             )
-        return content
+        return "\n".join(content) + "\n"

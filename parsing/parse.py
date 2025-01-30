@@ -8,24 +8,52 @@ from parse import (
     RsassaPkcs1GenerateParser, RsassaPkcs1VerifyParser, RsassaPssVerifyParser,
 )
 
-
-def get_target_files(directory_path, prefix, suffix, exclusion=None):
+def get_target_files(directory_path, prefixes, suffix, exclusion=None):
     """
     Fetch target files matching specific prefixes and suffix in the directory.
     Optionally exclude files containing specific substrings.
+    
     :param directory_path: Directory where JSON test vectors are stored
-    :param prefix: Tuple of prefixes to filter files
+    :param prefixes: Tuple of prefixes to filter files
     :param suffix: Suffix to filter files
-    :param exclusion: Tuple of strings to exclude files containing these substrings
+    :param exclusion: Tuple of substrings to exclude files containing them
     :return: List of matching file names.
     """
-    # Get files matching prefix and suffix
-    files = [f for f in os.listdir(directory_path) if f.startswith(prefix) and f.endswith(suffix)]
+    if not os.path.exists(directory_path):
+        print(f"Directory '{directory_path}' does not exist.")
+        return []
 
+    # Ensure prefixes is a tuple of strings
+    if isinstance(prefixes, str):
+        prefixes = (prefixes,)
+
+    # Ensure exclusion is a tuple of strings
+    if exclusion and isinstance(exclusion, str):
+        exclusion = (exclusion,)
+
+    # Get all files in directory
+    all_files = os.listdir(directory_path)
+
+    # Apply prefix and suffix filtering
+    matching_files = [
+        f for f in all_files
+        if f.endswith(suffix) and f.startswith(prefixes)
+    ]
+
+    # Debugging Step: Print matching files before exclusion
+    print(f"Matching files before exclusion: {matching_files}")
+
+    # Apply exclusion filtering if needed
     if exclusion:
-        files = [f for f in files if not any(excl in f for excl in exclusion)]
-        # print("Step 3 - Files after exclusion:", files)
-    return files
+        excluded_files = [f for f in matching_files if any(excl in f for excl in exclusion)]
+        print(f"Excluded files: {excluded_files}")
+        matching_files = [f for f in matching_files if not any(excl in f for excl in exclusion)]
+
+    # Debugging Step: Print final selected files
+    print(f"Final selected files: {matching_files}")
+
+    return matching_files
+
 
 
 
@@ -41,7 +69,7 @@ def get_parsers():
         ("ECDH", EcdhParser, ("ecdh"), "_test.json", './parsed_vectors/tv_EcdhTest.h', {"exclude": ("webcrypto", "ecpoint")}),
         ("ECDH ECPoint", EcdhEcPointParser, ("ecdh"), "_ecpoint_test.json", './parsed_vectors/tv_EcdhEcpoint.h', {}),
         ("ECDH WebCrypto", EcdhWebCryptoParser, ("ecdh"), "_webcrypto_test.json", './parsed_vectors/tv_EcdhWebcrypto.h', {}),
-        ("ECDSA", EcdsaParser, ("ecdsa"), "test.json", './parsed_vectors/tv_Ecdsa.h', {"exclude": ("p1363")}),
+        ("ECDSA", EcdsaParser, ("ecdsa_"), "test.json", './parsed_vectors/tv_Ecdsa.h', {"exclude": ("p1363")}),
         ("ECDSA P1363", EcdsaP1363Parser, ("ecdsa"), "p1363_test.json", './parsed_vectors/tv_EcdsaP1363.h', {}),
         ("DSA", DsaParser, ("dsa_"), "test.json", './parsed_vectors/tv_DsaTest.h', {"exclude": ("p1363")}),
         ("DSA P1363", DsaP1363Parser, ("dsa"), "p1363_test.json", './parsed_vectors/tv_DsaP1363Test.h', {}),
