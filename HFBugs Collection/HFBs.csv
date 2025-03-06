@@ -16,7 +16,7 @@ CVE-2015-3193,Carry,Assembly,1.0,1,DH DHE ciphersuite,exposure of priv key,7.5,R
 CVE-2015-8804,Carry,Assembly,1.0,1,P-384 NIST ECC,Incorrect output in calc,9.8,Remote,High,High
 CVE-2016-7055,Carry,Assembly,1.0,1,Montgomery Mul,Errors in pk operations,5.9,Theoretical,Medium,Low
 CVE-2015-8618,Carry,Go,1.0,0,Montgomery Mul,RSA keys pk operations,7.5,Theoretical,Low,High
-openssl#0c687d7e,Timing,Assembly,1.0,1,Poly1305 loss bit,"wrong MAC, Poly1305",4.0,Remote,Medium,Low
+"openssl#0c687d7e,Timing,Assembly,1.0,1,Poly1305 loss bit,""wrong MAC, Poly1305"",4.0,Remote,Medium,Low"
 pycrypto#985164,Parameters,Python,1.0,1,ElGamal generator verif,Weakened encrytion bad gen,4.0,Remote,Low,High
 openssl#15587,Carry,Assembly,1.0,1,BIGNUM modular mult,Keys incorrect calc,7.0,Local,High,High
 bouncycastle#620110a#1,Implementations,Java,1.0,1,Bitwise operation err,incorrect crypto operations,6.0,Remote,Medium,High
@@ -49,3 +49,5 @@ go#13515,Carry,Go,1.0,1,Carry montgomery,DH RSA bad results,6.5,Local ,Medium,Me
 CVE-2021-40530,Parameters,C++,1.0,1,param handling ElGamal,cross-configuration attack against OpenPGP.,5.9,Remote,Medium,High
 CVE-2019-14318,Timing,C++,1.0,1,ECDSA scalar multiplication,priv key timing attack,5.9,Remote,Medium,High
 CVE-2021-29415,Timing,Hardware,1.0,1,ECDSA in ARM hw accelerator,priv key timing attack,5.5,Local,High,High
+CVE-2020-1968,State,C,1,1,DH key reuse,priv key exposure,3.7,Remote,Medium,High
+CVE-2021-3449,MIV,C,1,1,TLS renegotiation,DoS,5.9,Remote,Medium,Medium
